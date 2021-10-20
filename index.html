@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- <script src="testPatterns.js"></script> -->
+    <!-- <script src="pattern.js"></script> -->
+    <!-- <script src="determineparameters.js"></script> -->
+    <script src="trendyways.js"></script>
+
+    <!-- <script src="data/2020-15min.json"></script> -->
+    <!-- <script src="data\Jan-Jun-20-15Min.json"></script> -->
+    <!-- <script src="data\Jul-Dec-20-15Min.json"></script> -->
+    <!-- <script src="data\Jan-Jun-21-15Min.json"></script> -->
+    <!-- <script src="data\Jul-Sep-15Min-21.json"></script> -->
+    <!-- <script src="data\Oct-21-15min.json"></script> -->
+
+
+
+
+
+</head>
+<style>
+    body {
+        background-color: black;
+    }
+</style>
+
+<body>
+    <section>
+        <select id="selectedDate" onchange="downloadFile()"></select>
+        <span style="color: white;">Choose a period; the candles are for 15 mins and includes data for nifty and india
+            vix</span>
+    </section>
+    <hr />
+
+    <section>
+        <button id="startProgram" onclick="startProgram()">Run</button>
+        <span style="color: white;">This will run the program for the selected period. And it will consider all the
+            flags.
+            By default if a trade has already profited, it will skip further trade for the day. Similarlily it will stop
+            trade if 2 trades are in loss.
+            The target and stoploss points are calculated based on the VIX</span>
+    </section>
+    <hr />
+    <!-- <button id="btnEnableReverseTrade" onclick="fnbtnEnableReverseTrade()">Enable Reverse Trade</button>
+    <button id="btnDisableAfterTwoTrades" onclick="fnbtnDisableAfterTwoTrades()">Disable After Two Trade</button> -->
+    <!-- <hr /> -->
+    <section>
+        <button onclick="testAllPatterns()">Test All Patterns</button>
+        <span style="color: white;">This will run all the test patterns one after another for the selected period,
+            throughout the day, without stopping if a trade has
+            profited or if the
+            overall trades for day is greater than 2. From day being to day end it will consider as the window</span>
+    </section>
+    <hr />
+    <section style="color: lightgreen;">
+        The below lets you test individual patterns, without stopping for the day regarless of the trade limit has met
+        or not
+    </section>
+    <hr />
+    <section>
+        <button onclick="testfnBearPatternAfterGapDown()">Test: Bear pattern after gap down </button>
+        <span style="color: white;">Bear pattern seen after a significant gap down of >=90 points and the current
+            candle
+            is red and at least has a diff of 10 points</span>
+    </section>
+    <hr />
+    <section>
+        <button onclick="testfnSignificantGapDuringOpen()">Test: Significant gap up on day open</button>
+        <span style="color: white;"></span>
+    </section>
+    <hr />
+    <section>
+        <button onclick="testfnBullOpenBreaksFirstSupport()">Test: Opens Bullish and Breaks First Support which is days
+            open</button>
+        <span style="color: white;">This pattern will enter a PUT option as it has broken the days first support</span>
+    </section>
+    <hr />
+    <section>
+        <button onclick="testfnBearOpenBreaksFirstResistance()">Test: Opens Bearish and Breaks First Resistance which is
+            days
+            open</button>
+        <span style="color: white;">This pattern will enter a CALL option as it has broken the days first resistance
+            which is days opening</span>
+    </section>
+    <hr />
+    <section>
+        <button onclick="testfnThreeGreenCandles()">Test: 3 consequitive green candles formed</button>
+        <span style="color: white;">If 3 Candles are GREEN & the difference b/w the latest candle close and t-2 candle
+            open is greater than 0 & the day does not have a huge gap up opening and it was b/w 0 and 80 & MOST
+            IMPORTANT the candle is currently below the days open.</span>
+    </section>
+    <hr />
+    <section>
+        <button onclick="testfnThreeRedCandles()">Test: 3 consequitive red candles formed</button>
+        <span style="color: white;">If 3 Candles are red candles are formed and the difference between current candle
+            close and the first of three candle open is greater than zero</span>
+    </section>
+    <hr />
+    <section>
+        <button onclick="testfnGapUpAndFirst3CandlesNegative()">Test: Gap up opening but first 3 candles are
+            negative</button>
+        <span style="color: white;">If the day opens flat or with a gap up and the first 3 candles are red and there is
+            enough gap between the last red candle close & previous close then we enter a PUT option</span>
+    </section>
+    <hr />
+    <section>
+        <button onclick="testfnGapDownOpenAndBullTrendReversal()">Test: Gap down open & bull trend reversal</button>
+        <span style="color: white;">This pattern enters a PUT option; if the day opens with a negative bias and then
+            there is a bull run and the bull run stops with the current canlde being red. The current candle which is
+            red and previous candle which is green will be close to previous close which in this case acts as
+            resistance. </span>
+    </section>
+    <hr />
+    <section>
+        <button onclick="testfnGapUpOpenAndBearTrendReversal()">Test: Gap up open & bear trend reversal</button>
+        <span style="color: white;">This pattern enters a CALL option; if the day opens with a positive bias and then
+            there is a bear run and the bear run stops with the current canlde being green. The current candle which is
+            green and previous candle which is red will be close to previous close which in this case acts as
+            support. </span>
+    </section>
+    <hr />
+    <section>
+        <button onclick="testfnGapUpOpenAndHighActsResistance()">Test: Gap up open & high acts as resistance</button>
+        <span style="color: white;">This pattern enters a PUT option; if the day opened with gap up and the previous
+            candle close is the days high, and if the current candle open is around the same spot and is red; the
+            probability the market will go reverse provided there is some distance to trade b/w current point and the
+            open </span>
+    </section>
+    <hr />
+    <div id='output'></div>
+
+</body>
+<script>
+    var boolfnBearPatternAfterGapDown = true,
+        boolfnSignificantGapDuringOpen = true,
+        boolfnBullOpenBreaksFirstSupport = true,
+        boolfnBearOpenBreaksFirstResistance = true,
+        boolfnThreeGreenCandles = true,
+        boolfnThreeRedCandles = true,
+        boolfnGapUpAndFirst3CandlesNegative = true,
+        boolfnGapDownOpenAndBullTrendReversal = true,
+        boolfnGapUpOpenAndBearTrendReversal = true,
+        boolfnGapUpOpenAndHighActsResistance = true;
+
+    var continueTradeOverride = false, testMode = false;
+
+
+
+    var ALERTCLOSEOPENTRADES = false, ALERTTRADEWINDOWCLOSED = false;
+    var STOPLOSSTICK = 50, TARGETTICK = 50;
+    var disableAfterTwoTrades = true, reverseTrade = false;
+    var movingTargetPoints = 5, moveTargetAtDiff = 50;
+    console.log('%c            N.A.A.T            ', 'color:blue;background-color:white');
+    console.log('%c Target Points: %s, Stoploss Points: %s, Disable After 2 Trades: %s', 'background-color:yellow;color:blue;', TARGETTICK, STOPLOSSTICK, disableAfterTwoTrades);
+
+    var entry, target, stopLoss, totalTradePointsProfit = 0, totalTradePointsLoss = 0;
+    var day = -1, indx = 0, profitCounter = 0, lossCounter = 0, isTrading = false, longShort = 0, masterIndex = 0;
+    var daysTradePointsProfit = 0, daysTradePointsLoss = 0;
+    var entryPercentage, entry, entryNearRange, entryWhenAtRangeOf, entryMinute,
+        entryDistanceFromLow, entryDistanceFromHigh, entryAvgCloseDistanceFromLow, entryAvgCloseDistanceFromHigh,
+        entryDiffOpenEntry, entryDiffOpenAvgCloseOnEntry, entryDiffYstdyCloseAndEntry,
+        entryStrikeToBreakCounter = 0, entryStrikeBrokenCounter = 0;
+    var arrProfitDayRange = [], arrLossDayRange = [], arrProfitMin = [], arrLossMin = [], arrProfitPercent = [], arrLossPercent = [], arrCandleObj = [], arrProfitRangePercent = [], arrLossRangePercent = [], arrdaysData = [];
+    var indicatorsArray = [];
+    var testResults = [];
+
+
+    function fnEnableAll() {
+    }
+    function fnResetForTest() {
+        var disableAfterTwoTrades = true, reverseTrade = false;
+        boolfnBearPatternAfterGapDown = false,
+            boolfnSignificantGapDuringOpen = false,
+            boolfnBullOpenBreaksFirstSupport = false,
+            boolfnBearOpenBreaksFirstResistance = false,
+            boolfnThreeGreenCandles = false,
+            boolfnThreeRedCandles = false,
+            boolfnGapUpAndFirst3CandlesNegative = false,
+            boolfnGapDownOpenAndBullTrendReversal = false,
+            boolfnGapUpOpenAndBearTrendReversal = false,
+            boolfnGapUpOpenAndHighActsResistance = false;
+    }
+    function fnReset() {
+        arrProfitDayRange = [], arrLossDayRange = [], arrProfitMin = [], arrLossMin = [], arrProfitPercent = [], arrLossPercent = [], arrCandleObj = [], arrProfitRangePercent = [], arrLossRangePercent = [], arrdaysData = [];
+        indicatorsArray = [];
+        totalTradePointsProfit = 0; totalTradePointsLoss = 0;
+        day = -1, indx = 0, profitCounter = 0, lossCounter = 0, isTrading = false, longShort = 0, masterIndex = 0;
+        entryStrikeToBreakCounter = 0, entryStrikeBrokenCounter = 0;
+
+        daysTradePointsProfit = 0, daysTradePointsLoss = 0;
+
+        ALERTCLOSEOPENTRADES = false; ALERTTRADEWINDOWCLOSED = false;
+        STOPLOSSTICK = 50; TARGETTICK = 50;
+
+        movingTargetPoints = 5; moveTargetAtDiff = 50;
+
+
+    }
+
+    function fnCandleObj(o, h, l, c, dtTime, vix) {
+        this.open = o;
+        this.high = h;
+        this.low = l;
+        this.close = c;
+        this.dtTime = dtTime;
+        this.percentageChange = ((c - o) / c) * 100;
+        this.IndiaVix = vix;
+    }
+    function fnDaysData(o, h, l, c, d, date) {
+        this.open = o;
+        this.date = date;
+        this.day = d;
+        this.daysLow = l;
+        this.daysHigh = h;
+        this.dayAvgClose = c;
+        this.dayTotalClose = c;
+        this.lastClose = c;
+        this.indx = 0;
+        this.previousClose = 0;
+        this.firstCandleClose = 0;
+        this.firstTrade = 'NOTRADE';
+        this.secondTrade = 'NOTRADE';
+        this.brokenPreviousCloseSupportCount = 0;
+        this.brokenPreviousCloseResistanceCount = 0;
+        this.hasProfited = false;
+        this.OpenTrend = null;
+        this.firstResistance = 0;
+        this.secondResistance = 0;
+        this.firstSupport = 0;
+        this.secondSupport = 0;
+        this.firstResistanceBrokenCounter = 0;
+        this.aboveFirstResistanceCounter = 0;
+        this.secondResistanceBrokenCounter = 0;
+        this.firstSupportBrokenCounter = 0;
+        this.belowFirstSupportCounter = 0;
+        this.secondSupportBrokenCounter = 0;
+        this.belowSecondSupportCounter = 0;
+        this.abovesecondResistanceCounter = 0;
+        this.previousOpen = 0;
+        this.previousDayChangePercent = 0;
+        this.previousDayWas = '';
+    }
+    function testAllPatterns() {
+
+        testfnBearPatternAfterGapDown();
+        testfnSignificantGapDuringOpen();
+        testfnBullOpenBreaksFirstSupport();
+        testfnBearOpenBreaksFirstResistance();
+        testfnThreeGreenCandles();
+        testfnThreeRedCandles();
+        testfnGapUpAndFirst3CandlesNegative();
+        testfnGapDownOpenAndBullTrendReversal();
+        testfnGapUpOpenAndBearTrendReversal();
+        testfnGapUpOpenAndHighActsResistance();
+        console.table(testResults);
+
+    }
+
+    function testfnBearPatternAfterGapDown() {
+        console.log('%c %s', 'background-color:blue;color:white;font-style:italic;font-size:20px;', 'Running test for pattern: ' + 'fnBearPatternAfterGapDown')
+        fnReset(); fnResetForTest();
+        boolfnBearPatternAfterGapDown = true; continueTradeOverride = true; testMode = true;
+        startProgram();
+        testResults.push({ 'pattern': 'fnBearPatternAfterGapDown', 'profitCounter': profitCounter, 'lossCounter': lossCounter, 'profitPoint': totalTradePointsProfit, 'lossPoint': totalTradePointsLoss, 'pointsGainLoss': totalTradePointsProfit - totalTradePointsLoss });
+    }
+    function testfnSignificantGapDuringOpen() {
+        console.log('%c %s', 'background-color:blue;color:white;font-style:italic;font-size:20px;', 'Running test for pattern: ' + 'fnSignificantGapDuringOpen')
+        fnReset(); fnResetForTest();
+
+        boolfnSignificantGapDuringOpen = true; continueTradeOverride = true; testMode = true;
+        startProgram();
+        testResults.push({ 'pattern': 'fnSignificantGapDuringOpen', 'profitCounter': profitCounter, 'lossCounter': lossCounter, 'profitPoint': totalTradePointsProfit, 'lossPoint': totalTradePointsLoss, 'pointsGainLoss': totalTradePointsProfit - totalTradePointsLoss });
+
+    }
+    function testfnBullOpenBreaksFirstSupport() {
+        console.log('%c %s', 'background-color:blue;color:white;font-style:italic;font-size:20px;', 'Running test for pattern: ' + 'fnBullOpenBreaksFirstSupport')
+        fnReset(); fnResetForTest();
+
+        boolfnBullOpenBreaksFirstSupport = true; continueTradeOverride = true; testMode = true;
+        startProgram();
+        testResults.push({ 'pattern': 'fnBullOpenBreaksFirstSupport', 'profitCounter': profitCounter, 'lossCounter': lossCounter, 'profitPoint': totalTradePointsProfit, 'lossPoint': totalTradePointsLoss, 'pointsGainLoss': totalTradePointsProfit - totalTradePointsLoss });
+
+    }
+    function testfnBearOpenBreaksFirstResistance() {
+        console.log('%c %s', 'background-color:blue;color:white;font-style:italic;font-size:20px;', 'Running test for pattern: ' + 'fnBearOpenBreaksFirstResistance')
+        fnReset(); fnResetForTest();
+
+        boolfnBearOpenBreaksFirstResistance = true; continueTradeOverride = true; testMode = true;
+        startProgram();
+        testResults.push({ 'pattern': 'fnBearOpenBreaksFirstResistance', 'profitCounter': profitCounter, 'lossCounter': lossCounter, 'profitPoint': totalTradePointsProfit, 'lossPoint': totalTradePointsLoss, 'pointsGainLoss': totalTradePointsProfit - totalTradePointsLoss });
+
+    }
+    function testfnThreeGreenCandles() {
+        console.log('%c %s', 'background-color:blue;color:white;font-style:italic;font-size:20px;', 'Running test for pattern: ' + 'fnThreeGreenCandles')
+        fnReset(); fnResetForTest();
+
+        boolfnThreeGreenCandles = true; continueTradeOverride = true; testMode = true;
+        startProgram();
+        testResults.push({ 'pattern': 'fnThreeGreenCandles', 'profitCounter': profitCounter, 'lossCounter': lossCounter, 'profitPoint': totalTradePointsProfit, 'lossPoint': totalTradePointsLoss, 'pointsGainLoss': totalTradePointsProfit - totalTradePointsLoss });
+
+    }
+    function testfnThreeRedCandles() {
+        console.log('%c %s', 'background-color:blue;color:white;font-style:italic;font-size:20px;', 'Running test for pattern: ' + 'fnThreeRedCandles')
+        fnReset(); fnResetForTest();
+
+        boolfnThreeRedCandles = true; continueTradeOverride = true; testMode = true;
+        startProgram();
+        testResults.push({ 'pattern': 'fnThreeRedCandles', 'profitCounter': profitCounter, 'lossCounter': lossCounter, 'profitPoint': totalTradePointsProfit, 'lossPoint': totalTradePointsLoss, 'pointsGainLoss': totalTradePointsProfit - totalTradePointsLoss });
+
+    }
+    function testfnGapUpAndFirst3CandlesNegative() {
+        console.log('%c %s', 'background-color:blue;color:white;font-style:italic;font-size:20px;', 'Running test for pattern: ' + 'fnGapUpAndFirst3CandlesNegative')
+        fnReset(); fnResetForTest();
+
+        boolfnGapUpAndFirst3CandlesNegative = true; continueTradeOverride = true; testMode = true;
+        startProgram();
+        testResults.push({ 'pattern': 'fnGapUpAndFirst3CandlesNegative', 'profitCounter': profitCounter, 'lossCounter': lossCounter, 'profitPoint': totalTradePointsProfit, 'lossPoint': totalTradePointsLoss, 'pointsGainLoss': totalTradePointsProfit - totalTradePointsLoss });
+
+    }
+    function testfnGapDownOpenAndBullTrendReversal() {
+        console.log('%c %s', 'background-color:blue;color:white;font-style:italic;font-size:20px;', 'Running test for pattern: ' + 'fnGapDownOpenAndBullTrendReversal')
+        fnReset(); fnResetForTest();
+
+        boolfnGapDownOpenAndBullTrendReversal = true; continueTradeOverride = true; testMode = true;
+        startProgram();
+        testResults.push({ 'pattern': 'fnGapDownOpenAndBullTrendReversal', 'profitCounter': profitCounter, 'lossCounter': lossCounter, 'profitPoint': totalTradePointsProfit, 'lossPoint': totalTradePointsLoss, 'pointsGainLoss': totalTradePointsProfit - totalTradePointsLoss });
+
+    }
+    function testfnGapUpOpenAndBearTrendReversal() {
+        console.log('%c %s', 'background-color:blue;color:white;font-style:italic;font-size:20px;', 'Running test for pattern: ' + 'fnGapUpOpenAndBearTrendReversal')
+        fnReset(); fnResetForTest();
+
+        boolfnGapUpOpenAndBearTrendReversal = true; continueTradeOverride = true; testMode = true;
+        startProgram();
+        testResults.push({ 'pattern': 'fnGapUpOpenAndBearTrendReversal', 'profitCounter': profitCounter, 'lossCounter': lossCounter, 'profitPoint': totalTradePointsProfit, 'lossPoint': totalTradePointsLoss, 'pointsGainLoss': totalTradePointsProfit - totalTradePointsLoss });
+
+    }
+    function testfnGapUpOpenAndHighActsResistance() {
+        console.log('%c %s', 'background-color:blue;color:white;font-style:italic;font-size:20px;', 'Running test for pattern: ' + 'fnGapUpOpenAndHighActsResistance')
+        fnReset(); fnResetForTest();
+
+        boolfnGapUpOpenAndHighActsResistance = true; continueTradeOverride = true; testMode = true;
+        startProgram();
+        testResults.push({ 'pattern': 'fnGapUpOpenAndHighActsResistance', 'profitCounter': profitCounter, 'lossCounter': lossCounter, 'profitPoint': totalTradePointsProfit, 'lossPoint': totalTradePointsLoss, 'pointsGainLoss': totalTradePointsProfit - totalTradePointsLoss });
+
+    }
+
+    function startProgram() {
+        //console.log('Starting Program Iris...');
+        if (testMode === false) fnReset();
+        // fnEnableAll();
+
+
+        fnProcessData();
+        fnEndPrint();
+
+    }
+    function fnProcessData() {
+        for (let index = 0; index < data.candles.length; index++) {
+            masterIndex = index;
+            const element = data.candles[index];
+            var candleObj = new fnCandleObj(parseFloat(element[1]), parseFloat(element[2]), parseFloat(element[3]), parseFloat(element[4]), element[0], dataVix.candles[index][4]);
+            var dt = new Date(candleObj.dtTime);
+            indicatorsArray.push({ c: candleObj.close });
+            tw.rsi(indicatorsArray, 14);
+            tw.ema(indicatorsArray, 20, 'c');
+            if (dataVix.candles[index][4] > 30) {
+                movingTargetPoints = 20, moveTargetAtDiff = 50;
+                STOPLOSSTICK = 150, TARGETTICK = 150;
+            }
+            else if (dataVix.candles[index][4] > 20) {
+                movingTargetPoints = 10, moveTargetAtDiff = 15;
+                STOPLOSSTICK = 50, TARGETTICK = 50;
+            }
+            else {
+                movingTargetPoints = 5, moveTargetAtDiff = 10;
+                STOPLOSSTICK = 50, TARGETTICK = 50;
+            }
+
+            if (dt.getHours() === 9 && dt.getMinutes() === 15) {
+                day++;
+                daysTradePointsProfit = 0;
+                daysTradePointsLoss = 0;
+                var daysData;
+                if (candleObj.open > candleObj.close) {
+                    daysData = new fnDaysData(candleObj.open, candleObj.open, candleObj.close, candleObj.close, day, dt.toDateString());
+                }
+                else {
+                    daysData = new fnDaysData(candleObj.open, candleObj.close, candleObj.open, candleObj.close, day, dt.toDateString());
+
+                }
+                daysData.indx = 0;
+                daysData.firstCandleClose = candleObj.close;
+
+                if (day > 0) {
+                    daysData.previousClose = (arrdaysData[arrdaysData.length - 1]).lastClose;
+                    daysData.previousOpen = (arrdaysData[arrdaysData.length - 1]).open;
+                    if (daysData.previousClose > daysData.previousOpen) {
+                        daysData.previousDayChangePercent = ((daysData.previousClose - daysData.previousOpen) / daysData.previousOpen) * 100;
+                        daysData.previousDayWas = "POSITIVE";
+                        //console.log('Previous Days was Positive', daysData.previousOpen, daysData.previousClose, daysData.previousDayChangePercent);
+                    }
+                    else {
+                        daysData.previousDayChangePercent = ((daysData.previousOpen - daysData.previousClose) / daysData.previousClose) * 100;
+                        daysData.previousDayWas = "NEGATIVE";
+                        //console.log('Previous Days was NEGATIVE', daysData.previousOpen, daysData.previousClose, daysData.previousDayChangePercent);
+
+                    }
+
+
+                }
+                arrdaysData.push(daysData);
+            }
+
+            else {
+                if (dt.getHours() === 15 && dt.getMinutes() === 0) {
+                    if (isTrading === true) {
+                        console.log('%c Time is 15:00; Squaring off the open positions!', 'background-color:white;font-weight:bold;color:purple');
+                        ALERTCLOSEOPENTRADES = true;
+                        if (longShort === 0) {
+                            if (candleObj.close > entry) {
+                                fnProfit(candleObj.dtTime, Math.round(candleObj.close - entry));
+                                isTrading = false;
+                                longShort = 0;
+                            } else {
+                                fnLoss(candleObj.dtTime, Math.round(entry - candleObj.close));
+                                isTrading = false;
+                                longShort = 0;
+                            }
+                        }
+                        if (longShort === 1) {
+                            if (candleObj.close >= entry) {
+                                fnLoss(candleObj.dtTime, Math.round(candleObj.close - entry));
+                                isTrading = false;
+                                longShort = 0;
+
+                            } else {
+                                fnProfit(candleObj.dtTime, Math.round(entry - candleObj.close));
+                                isTrading = false;
+                                longShort = 0;
+                            }
+                        }
+
+                    }
+                }
+                var daysData = arrdaysData[day];
+                daysData.indx++;
+
+
+                if (candleObj.open > candleObj.close) {
+                    if (candleObj.open > daysData.daysHigh) {
+                        daysData.daysHigh = candleObj.open;
+                    }
+                    if (candleObj.close < daysData.daysLow) {
+                        daysData.daysLow = candleObj.close;
+                    }
+                } else {
+                    if (candleObj.close > daysData.daysHigh) {
+                        daysData.daysHigh = candleObj.open;
+                    }
+                    if (candleObj.open < daysData.daysLow) {
+                        daysData.daysLow = candleObj.open;
+                    }
+                }
+
+                daysData.dayTotalClose = (daysData.dayTotalClose + candleObj.close);
+                daysData.dayAvgClose = daysData.dayTotalClose / (daysData.indx + 1);
+                daysData.lastClose = candleObj.close;
+                if (candleObj.open < daysData.previousClose && candleObj.close < daysData.previousClose && daysData.firstCandleClose > daysData.previousClose) {
+                    daysData.brokenPreviousCloseSupportCount++;
+                }
+                if (candleObj.open > daysData.previousClose && candleObj.close > daysData.previousClose && daysData.firstCandleClose < daysData.previousClose) {
+                    daysData.brokenPreviousCloseResistanceCount++;
+                }
+                var differenceBetweenFirstCurrentClose = parseFloat(candleObj.close - daysData.firstCandleClose).toFixed(2);
+                if (daysData.arrDifferenceOfClose) {
+                    daysData.arrDifferenceOfClose.push(differenceBetweenFirstCurrentClose);
+                }
+                else {
+                    daysData.arrDifferenceOfClose = [];
+                    daysData.arrDifferenceOfClose.push(differenceBetweenFirstCurrentClose);
+                }
+
+            }
+            arrCandleObj.push(candleObj);
+            if (day === 0) {
+                //console.log('skipping as day is 0');
+            }
+            else {
+                if (isTrading === true) {
+                    if (longShort === 0) {
+
+                        if (candleObj.high >= target) {
+                            fnProfit(candleObj.dtTime, Math.round(candleObj.high - entry));
+                            isTrading = false;
+                            longShort = 0;
+                        }
+                        if (candleObj.high > stopLoss && stopLoss >= entry) {
+                            console.log('%c Stop Loss Hit, but Profit', 'color:white;background-color:blue');
+                            fnProfit(candleObj.dtTime, Math.round(candleObj.high - entry));
+                            isTrading = false;
+                            longShort = 0;
+                        }
+                        if (candleObj.low <= stopLoss && stopLoss < entry) {
+                            fnLoss(candleObj.dtTime, Math.round(entry - candleObj.low));
+                            isTrading = false;
+                            longShort = 0;
+                            if (fnCheckCurrentDayBeforeEntry()) {
+                                if (reverseTrade === true)
+                                    fnEnterShort(candleObj, 'Call failed, Buying Put');
+                            }
+
+                        }
+                        else {
+                            if ((Math.round((target - candleObj.high) > 0) && Math.round((target - candleObj.high)) < moveTargetAtDiff)) {
+                                console.log('Nearing Current Target, Updating Target by 5 points');
+                                target = target + movingTargetPoints;
+                                stopLoss = stopLoss + movingTargetPoints;
+                                console.debug('LONG: Moving the target', candleObj.dtTime, Math.round(target - candleObj.high - movingTargetPoints), 'Current Target:', candleObj.high, target - movingTargetPoints, 'New Target:', target);
+
+                            }
+                        }
+
+                    }
+                    if (longShort === 1) {
+
+                        if (candleObj.low <= target) {
+                            fnProfit(candleObj.dtTime, Math.round(entry - candleObj.low));
+                            isTrading = false;
+                            longShort = 0;
+                        }
+                        if (candleObj.low <= stopLoss && stopLoss <= entry) {
+                            console.log('%c Stop Loss Hit, but Profit', 'color:white;background-color:blue');
+
+                            fnProfit(candleObj.dtTime, Math.round(entry - candleObj.low));
+                            isTrading = false;
+                            longShort = 0;
+                        }
+                        if (candleObj.high >= stopLoss && stopLoss > entry) {
+                            fnLoss(candleObj.dtTime, Math.round(candleObj.high - entry));
+                            isTrading = false;
+                            longShort = 0;
+                            if (fnCheckCurrentDayBeforeEntry()) {
+                                if (reverseTrade === true)
+                                    fnEnterLong(candleObj, 'Put failed, Buying Call');
+                            }
+                        }
+                        else {
+                            if (Math.round((candleObj.low - target)) > 0 && Math.round((candleObj.low - target)) < moveTargetAtDiff) {
+                                console.log('Nearing Current Target, Updating Target by 5 points');
+                                target = target - movingTargetPoints;
+                                stopLoss = stopLoss - movingTargetPoints;
+                                console.debug('SHORT: Moving the target', candleObj.dtTime, Math.round(candleObj.low - target - movingTargetPoints), candleObj.low, 'Current Target:', target - movingTargetPoints, 'New Target:', target);
+
+                            }
+                        }
+
+                    }
+
+                }
+
+
+                if (daysData.indx === 0 && daysData.previousClose > daysData.open
+                ) {
+                    // fnPrintVerbose(candleObj.dtTime + 'Day has opened negative, the first resistance will be the open & second will be previous day close');
+                    daysData.OpenTrend = 'NEGATIVE';
+                    daysData.firstResistance = candleObj.open;
+                    daysData.secondResistance = daysData.previousClose;
+                }
+                if (daysData.OpenTrend === 'NEGATIVE'
+                ) {
+                    if (candleObj.open > daysData.firstResistance && candleObj.close > daysData.firstResistance) daysData.aboveFirstResistanceCounter++;
+                    if (candleObj.open < daysData.firstResistance && candleObj.close > daysData.firstResistance) daysData.firstResistanceBrokenCounter++;
+                    if (candleObj.open < daysData.secondResistance && candleObj.close > daysData.secondResistance) daysData.secondResistanceBrokenCounter++;
+                    if (candleObj.open > daysData.secondResistance && candleObj.close > daysData.secondResistance) daysData.abovesecondResistanceCounter++;
+
+                }
+
+                if (daysData.indx === 0 && daysData.open > daysData.previousClose
+
+                ) {
+                    //  fnPrintVerbose(candleObj.dtTime + 'Day has opened POSITIVE, the first SUPPORT will be the open & second will be previous day close');
+                    daysData.OpenTrend = 'POSITIVE';
+                    daysData.firstSupport = candleObj.open;
+                    daysData.secondSupport = daysData.previousClose;
+                }
+                if (daysData.OpenTrend === 'POSITIVE'
+
+                ) {
+                    if (candleObj.open < daysData.firstSupport && candleObj.close < daysData.firstSupport) daysData.belowFirstSupportCounter++;
+                    if (candleObj.close < daysData.firstSupport && candleObj.open > daysData.firstSupport) daysData.firstSupportBrokenCounter++;
+                    if (candleObj.open < daysData.secondSupport && candleObj.close < daysData.secondSupport) daysData.belowSecondSupportCounter++;
+                    if (candleObj.open > daysData.secondSupport && candleObj.close < daysData.secondSupport) daysData.secondSupportBrokenCounter++;
+
+                }
+
+
+                if (fnCheckCurrentDayBeforeEntry()) {
+                    if (dt.getHours() === 15) {
+                        if (dt.getMinutes() >= 15) {
+                            console.log('Trade Window Ended');
+                            //console.log(dt, daysData.daysHigh, daysData.daysLow);
+                            ALERTTRADEWINDOWCLOSED = true;
+                            continue;
+                        }
+                    }
+                    if (dt.getHours() >= 15) {
+                        continue;
+                    }
+
+                    if (index > 15) {
+                        //consider RSI;
+                        //fnCheckRSILevel();
+                    }
+
+                    // //fnGapDownOpenAndLowActsSupport();
+                    // // fnBullPatternAfterGapUp();
+
+                    fnBearPatternAfterGapDown();
+                    fnSignificantGapDuringOpen();
+                    fnBullOpenBreaksFirstSupport();
+                    fnBearOpenBreaksFirstResistance();
+                    fnThreeGreenCandles();
+                    fnThreeRedCandles();
+                    fnGapUpAndFirst3CandlesNegative();
+                    fnGapDownOpenAndBullTrendReversal();
+                    fnGapUpOpenAndBearTrendReversal();
+                    fnGapUpOpenAndHighActsResistance();
+
+                }
+            }
+        }
+    }
+
+
+
+    function fnBearPatternAfterGapDown() {
+        if (boolfnBearPatternAfterGapDown === false)
+            return;
+
+        var daysData = arrdaysData[day];
+        var candleObj = arrCandleObj[arrCandleObj.length - 1];
+
+        if (daysData.indx > 0) {
+            return;
+        }
+
+        if ((candleObj.close - daysData.previousClose) >= 90 && (candleObj.close < candleObj.open) && (candleObj.open - candleObj.close) > 10) {
+            fnPrintVerbose('Gap down of 90 points, indicates a bear sentiment, Buy Put');
+            fnEnterShort(candleObj, 'fnBearPatternAfterGapDown');
+        }
+    }
+
+    function fnGapUpOpenAndHighActsResistance() {
+        if (boolfnGapUpOpenAndHighActsResistance === false) return;
+        var daysData = arrdaysData[day];
+        if (daysData.indx < 2) {
+            return;
+        }
+        var candleObj = arrCandleObj[arrCandleObj.length - 1];
+        var candleObj2 = arrCandleObj[arrCandleObj.length - 2];
+
+        if ((daysData.open - daysData.previousClose) > 0) {
+            //if the day opened with gap up and the previous candle close is the days high
+            // and if the current candle open is around the same spot and is red
+            //probability the market will go reverse provided there is some distance to trade b/w 
+            //current point and the open
+            if (candleObj.open > candleObj.close && Math.abs((candleObj.open - daysData.daysHigh)) < 5
+                && candleObj2.close === daysData.daysHigh && daysData.open < candleObj.close
+                && candleObj.close - daysData.open > 10) {
+                fnEnterShort(candleObj, 'fnGapUpOpenAndHighActsResistance');
+            }
+        }
+    }
+
+    function fnGapUpOpenAndBearTrendReversal() {
+        if (boolfnGapUpOpenAndBearTrendReversal === false) return;
+        var daysData = arrdaysData[day];
+        var candleObj = arrCandleObj[arrCandleObj.length - 1];
+        var candleObj2 = arrCandleObj[arrCandleObj.length - 2];
+        if (candleObj.close > candleObj.open
+            && Math.abs(candleObj.open - daysData.previousClose) < 5
+            && candleObj2.open > candleObj2.close
+            && Math.abs(candleObj2.close - daysData.previousClose) < 5
+            && daysData.secondSupportBrokenCounter === 0
+            && daysData.belowSecondSupportCounter === 0
+            && daysData.OpenTrend === "POSITIVE") {
+            fnEnterLong(candleObj, 'fnGapUpOpenAndBearTrendReversal');
+        }
+    }
+
+    function fnGapDownOpenAndBullTrendReversal() {
+        if (boolfnGapDownOpenAndBullTrendReversal === false) return;
+        /**
+         * ! Trend reversal 
+         * * The day opens with a considerable gap down. 
+         * * The current candle is opening closer to the previous day close and closes in red
+         * * The previous candle is green and closes near the previous day close
+         * * And the last 2 candles are also in green
+         * * And there was no instance where the previous day close was broken
+         * * this indicates a trend reversal
+         */
+        var daysData = arrdaysData[day];
+        var candleObj = arrCandleObj[arrCandleObj.length - 1];
+        var candleObj2 = arrCandleObj[arrCandleObj.length - 2];
+        if (candleObj.open > candleObj.close
+            && Math.abs(candleObj.open - daysData.previousClose) < 5
+            && candleObj2.close > candleObj2.open
+            && Math.abs(candleObj2.close - daysData.previousClose) < 5
+            && daysData.secondResistanceBrokenCounter === 0
+            && daysData.abovesecondResistanceCounter === 0
+            && daysData.OpenTrend === 'NEGATIVE'
+        ) {
+            fnEnterShort(candleObj, 'fnGapDownOpenAndBullTrendReversal');
+        }
+
+    }
+    function fnGapUpAndFirst3CandlesNegative() {
+        if (boolfnGapUpAndFirst3CandlesNegative === false) return;
+
+        var daysData = arrdaysData[day];
+        var candleObj = arrCandleObj[arrCandleObj.length - 1];
+        var candleObj2 = arrCandleObj[arrCandleObj.length - 2];
+        var candleObj3 = arrCandleObj[arrCandleObj.length - 3];
+
+        if (daysData.open - daysData.previousClose > 0
+            && candleObj.open - candleObj.close > 0
+            && candleObj2.open - candleObj2.close > 0
+            && candleObj3.open - candleObj3.close > 0
+            && candleObj.close - daysData.previousClose > TARGETTICK
+            && daysData.indx >= 2 && daysData.indx < 10) {
+            fnEnterShort(candleObj, 'fnGapUpAndFirst3CandlesNegative: Gap Up Openening, but three candles are in red and there is room for target and this between candle index >=2 & <10');
+        }
+
+    }
+
+    function fnThreeGreenCandles() {
+        if (boolfnThreeGreenCandles === false) return;
+
+        var daysData = arrdaysData[day];
+        var candleObj = arrCandleObj[arrCandleObj.length - 1];
+        var candleObj2 = arrCandleObj[arrCandleObj.length - 2];
+        var candleObj3 = arrCandleObj[arrCandleObj.length - 3];
+
+        /**
+        * ! If 3 Candles are GREEN.
+        * ! And the difference b/w the latest candle close and t-2 candle open is greater than 0
+        * ! And the day does not have a huge gap up opening and it was b/w 0 and 80
+        * ! And MOST IMPORTANT the candle is currently below the days open.
+        * * In plain english - if the 3 candles are in green and the day did have a positive opening
+        * * and then the current candle is below the days open then we trade.
+        * * The rational is - in case if the day had positive opening compared to previous close, and if the current candle is below the days open, then there is probability 
+        * * that it will go up
+        */
+        if (candleObj.close > candleObj.open
+            && candleObj2.close > candleObj2.open
+            && candleObj3.close > candleObj3.open
+            && daysData.indx >= 2
+            && candleObj.close - candleObj3.open > 0
+            && daysData.open - daysData.previousClose > 0
+            && candleObj.close < daysData.open
+        ) {
+            fnEnterLong(candleObj, 'fnThreeGreenCandles: Three green candles are formed & trend continues; indicating bull pattern');
+        }
+
+
+    }
+    function fnThreeRedCandles() {
+        if (boolfnThreeRedCandles === false) return;
+
+        var daysData = arrdaysData[day];
+        var candleObj = arrCandleObj[arrCandleObj.length - 1];
+        var candleObj2 = arrCandleObj[arrCandleObj.length - 2];
+        var candleObj3 = arrCandleObj[arrCandleObj.length - 3];
+        if (candleObj.close < candleObj.open
+            && candleObj2.close < candleObj2.open
+            && candleObj3.close < candleObj3.open
+            && daysData.indx >= 2
+            && candleObj3.open - candleObj.close > 0
+        ) {
+
+            fnEnterShort(candleObj, 'fnThreeRedCandles: Three red candles are formed & trend continues; indicating bear pattern');
+        }
+    }
+
+    function fnBullOpenBreaksFirstSupport(daysData, candleObj) {
+        if (boolfnBullOpenBreaksFirstSupport === false)
+            return;
+        var daysData = arrdaysData[day];
+        var candleObj = arrCandleObj[arrCandleObj.length - 1];
+        if (daysData.OpenTrend === 'POSITIVE' && candleObj.open < daysData.firstSupport && candleObj.close < daysData.firstSupport
+            && candleObj.close < candleObj.open
+            && candleObj.open - candleObj.close > 10
+            && candleObj.close - daysData.secondSupport < -5
+            && daysData.belowFirstSupportCounter > 0 && daysData.firstSupportBrokenCounter > 0 && daysData.firstSupportBrokenCounter < daysData.belowFirstSupportCounter) {
+            fnEnterShort(candleObj, 'fnBullOpenBreaksFirstSupport: The bull run ends and breaks the first support, which is days open, buying put option');
+        }
+    }
+
+    function fnBearOpenBreaksFirstResistance(daysData, candleObj) {
+        if (boolfnBearOpenBreaksFirstResistance === false) return;
+
+        var daysData = arrdaysData[day];
+        var candleObj = arrCandleObj[arrCandleObj.length - 1];
+        if (daysData.OpenTrend === 'NEGATIVE' && candleObj.open > daysData.firstResistance && candleObj.close > daysData.firstResistance
+            && daysData.firstResistanceBrokenCounter > 0 && daysData.aboveFirstResistanceCounter > 0
+            && candleObj.close > candleObj.open
+            && daysData.secondResistance - candleObj.close > 5
+        ) {
+            fnEnterLong(candleObj, 'fnBearOpenBreaksFirstResistance: The bear run ends and breaks the first resistance, which is days open, buying call option');
+        }
+
+    }
+    function fnEnterShort(candleObj, strategy) {
+        if (isTrading === false) {
+            entry = candleObj.close;
+            target = candleObj.close - TARGETTICK;
+            stopLoss = candleObj.close + STOPLOSSTICK;
+            isTrading = true;
+            longShort = 1;
+            entryPercentage = candleObj.percentageChange;
+            console.log('%c%s %s', 'font-size:14px;font-weight:bold;background-color:black;color:white', candleObj.dtTime, "BUY PUT " + strategy);
+            fnPrint('ENTRY', { strategy: strategy, position: 'Buy Put', entry: entry, target: target, stopLoss: stopLoss, dtTime: candleObj.dtTime, open: candleObj.open, high: candleObj.high, low: candleObj.low }, candleObj.IndiaVix)
+        }
+    }
+    function fnEnterLong(candleObj, strategy) {
+        if (isTrading === false) {
+            entry = candleObj.close;
+            target = candleObj.close + TARGETTICK
+            stopLoss = candleObj.close - STOPLOSSTICK
+            isTrading = true;
+            longShort = 0;
+            entryPercentage = candleObj.percentageChange;
+            console.log('%c%s %s', 'font-size:14px;font-weight:bold;background-color:white;color:black', candleObj.dtTime, "BUY CALL " + strategy);
+
+            fnPrint('ENTRY', { strategy: strategy, position: 'Buy Call', entry: entry, target: target, stopLoss: stopLoss, dtTime: candleObj.dtTime, open: candleObj.open, high: candleObj.high, low: candleObj.low }, candleObj.IndiaVix)
+        }
+    }
+    function fnCheckCurrentDayBeforeEntry() {
+        if (continueTradeOverride === true) return true;
+
+        if (disableAfterTwoTrades === false) {
+            return true;
+        }
+
+        var daysData = arrdaysData[day];
+        if (daysData.hasProfited === true) {
+            return false;
+        }
+        if (daysData.firstTrade === "NOTRADE") {
+            return true;
+        }
+        if (daysData.firstTrade === "PROFIT") {
+            console.log('%c Stopping further trades as first trade is in profit', 'background-color:lightblue;color:green;font-weight:bold');
+            return false;
+        }
+        if (daysData.firstTrade !== "NOTRADE" && daysData.secondTrade === "NOTRADE") {
+            return true;
+        }
+        if (daysData.firstTrade === "LOSS" && daysData.secondTrade === "LOSS") {
+            console.log('%c Stopping further trades as both trades are loss', 'background-color:lightblue;color:red;font-weight:bold');
+            return false;
+        }
+        if (daysData.firstTrade !== "NOTRADE" && daysData.secondTrade !== "NOTRADE") {
+            return false;
+        }
+
+    }
+
+    function fnEndPrint() {
+        var plRatio = TARGETTICK / STOPLOSSTICK;
+        var netPL = profitCounter - lossCounter;
+        console.log('Profits: ', profitCounter, 'Loss: ', lossCounter, ' Profit/Loss Points: ', netPL);
+        console.log('Profit Points Total: ', totalTradePointsProfit, ' Loss Points Total: ', totalTradePointsLoss, 'Net: ', totalTradePointsProfit - totalTradePointsLoss);
+
+        var avgProfitPercent = (arrProfitPercent.reduce((a, b) => a + b, 0)) / arrProfitPercent.length;
+        var avgLossPercent = (arrLossPercent.reduce((a, b) => a + b, 0)) / arrLossPercent.length;
+        if (ALERTCLOSEOPENTRADES === false) {
+            console.log('%c FAULT IN PROGRAM: OPEN TRADES WERE NOT CLOSED', 'background-color:red;color-white;font-size:20px');
+        }
+        if (ALERTTRADEWINDOWCLOSED === false) {
+            console.log('%c FAULT IN PROGRAM: TRADE WINDOW CLOSED DID NOT TRIGGER', 'background-color:red;color-white;font-size:20px');
+        }
+        console.log('%c ****************************************************************************', 'color:red;font-size:25px;')
+    }
+
+    function fnProfit(dtTime, points) {
+        var daysData = arrdaysData[day];
+        daysData.hasProfited = true;
+        if (daysData.firstTrade === "NOTRADE") {
+            daysData.firstTrade = "PROFIT";
+        }
+        else {
+            daysData.secondTrade = "PROFIT";
+        }
+
+        console.log('%c Profit, %s, Points Gained: %s', 'background-color:darkgreen;color:white', dtTime, points);
+
+
+        profitCounter++;
+        totalTradePointsProfit = totalTradePointsProfit + points;
+
+        arrProfitPercent.push(entryPercentage);
+        arrProfitRangePercent.push(entryNearRange);
+        arrProfitDayRange.push(entryWhenAtRangeOf);
+        arrProfitMin.push(entryMinute);
+    }
+    function fnLoss(dtTime, points) {
+        console.log('%c Loss, %s, Points Lost: %s', 'background-color:darkred;color:white', dtTime, points);
+
+        var daysData = arrdaysData[day];
+        if (daysData.firstTrade === "NOTRADE") {
+            daysData.firstTrade = "LOSS";
+        }
+        else {
+            daysData.secondTrade = "LOSS";
+        }
+        totalTradePointsLoss = totalTradePointsLoss + points;
+        lossCounter++;
+        arrLossPercent.push(entryPercentage);
+        arrLossRangePercent.push(entryNearRange);
+        arrLossDayRange.push(entryWhenAtRangeOf);
+        arrLossMin.push(entryMinute);
+
+    }
+
+    function fnPrint(scenario, obj, vix) {
+        var printStmt;
+        switch (scenario) {
+            case 'ENTRY':
+                console.log(obj.position, 'Vix:', vix, obj.dtTime, 'Entry:', obj.entry, 'Target:', obj.target, 'Stoploss:', obj.stopLoss, 'OHL:', obj.open, obj.high, obj.low);
+                break;
+            default:
+                break;
+        }
+
+    }
+    function fnPrintVerbose(msg) {
+        console.log('%c %s', 'color:orange;', msg)
+    }
+
+    /**
+     * ! If there is a GAP UP or a GAP DOWN of 1% - Enter Long or Enter Short respectively with trailing stoploss and target
+     * 
+    */
+    function fnSignificantGapDuringOpen() {
+        if (boolfnSignificantGapDuringOpen === false)
+            return;
+        var daysData = arrdaysData[day];
+
+        if (daysData.indx > 0) return;
+        var candleObj = arrCandleObj[arrCandleObj.length - 1];
+
+        if (daysData.previousClose < candleObj.open) {
+            //Gap Up Opening.
+            var gapPercent = ((candleObj.open - daysData.previousClose) / daysData.previousClose) * 100;
+            if (gapPercent > 0.5
+                //   && daysData.previousDayWas === "POSITIVE" && daysData.previousDayChangePercent > 1
+            ) {
+                if (candleObj.IndiaVix < 20) {
+                    fnPrintVerbose('Gap up opening and the VIX is below 20, Option writers will try to run for cover, BUY CALL');
+                    fnEnterLong(candleObj, 'fnBullPatternAfterGapUp');
+                }
+                else if (candleObj.IndiaVix >= 20) {
+                    fnPrintVerbose('Gap up opening and the VIX is above 20, profit booking will be seen, BUY PUT');
+                    fnEnterShort(candleObj, 'fnBullPatternAfterGapUp');
+                }
+            }
+        }
+
+        // if (daysData.previousClose > candleObj.open) {
+        //     //Gap Down Opening.
+        //     var gapPercent = ((daysData.previousClose - candleObj.open) / candleObj.open) * 100;
+        //     if (gapPercent > 1) {
+        //         fnEnterShort(candleObj, 'Gap Down Opening');
+        //     }
+        // }
+
+
+
+    }
+    function fnGapDownOpenAndLowActsSupport() {
+        var daysData = arrdaysData[day];
+        if (daysData.indx < 2) {
+            return;
+        }
+        var candleObj = arrCandleObj[arrCandleObj.length - 1];
+        var candleObj2 = arrCandleObj[arrCandleObj.length - 2];
+        if ((daysData.previousClose - daysData.open) > 0) {
+            if (candleObj.close > candleObj.open
+                && Math.abs(candleObj.open - daysData.daysLow) < 5
+                && candleObj2.close === daysData.daysLow
+                && candleObj2.open > candleObj2.close
+                && daysData.open > candleObj.close
+                && Math.abs(candleObj.open - candleObj2.close) < 5
+                && Math.abs(candleObj.close - candleObj2.open) < 5
+                && (candleObj.close - candleObj.open) > (candleObj2.open - candleObj2.close)
+                // && fnCheckIfLast4CandlesAreRed() === true
+            ) {
+                fnEnterLong(candleObj, 'fnGapDownOpenAndLowActsSupport');
+
+            }
+        }
+    }
+
+    function fnCheckIfLast4CandlesAreRed() {
+        var daysData = arrdaysData[day];
+        if (daysData.indx > 3) {
+            // this will be at least 5 candles
+            if (arrCandleObj[arrCandleObj.length - 2].open < arrCandleObj[arrCandleObj.length - 3].open
+                && arrCandleObj[arrCandleObj.length - 3].open < arrCandleObj[arrCandleObj.length - 4].open
+                //  && arrCandleObj[arrCandleObj.length - 4].open < arrCandleObj[arrCandleObj.length - 5].open
+                && arrCandleObj[arrCandleObj.length - 4].open < daysData.previousClose) {
+                return true;
+            }
+        }
+        return false;
+
+    }
+    var testData = [
+
+        { label: '2021 October', period: 'Oct-21-15min.json' },
+        { label: '2021 Jul-Sep', period: 'Jul-Sep-15Min-21.json' },
+        { label: '2021 Jan-Jun', period: 'Jan-Jun-21-15Min.json' },
+        { label: '2020 Jan-June', period: 'Jan-Jun-20-15Min.json' },
+        { label: '2020 Jul-Dec', period: 'Jul-Dec-20-15Min.json' },
+        { label: '2020 Full Year', period: '2020-15min.json' },
+
+    ]
+    for (let index = 0; index < testData.length; index++) {
+        const element = testData[index];
+        var x = document.getElementById("selectedDate");
+        var option = document.createElement("option");
+        option.text = element.label;
+        option.value = index;
+        x.add(option);
+
+    }
+    function downloadFile() {
+        var file = (testData[parseInt(document.getElementById('selectedDate').value)]).period;
+        var n = document.createElement("script");
+        targetHit = 0, stopLossHit = 0;
+        n.type = "text/javascript";
+        n.src = 'data/' + file;
+        n.innerHTML = null;
+        n.id = "widget";
+        document.getElementById("output").innerHTML = "";
+        document.getElementById("output").appendChild(n);
+    }
+    window.onload = function () { downloadFile(); }
+
+</script>
+
+</html>
