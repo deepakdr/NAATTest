@@ -162,7 +162,7 @@
     var disableAfterTwoTrades = true, reverseTrade = false;
     var movingTargetPoints = 5, moveTargetAtDiff = 50;
     console.log('%c            N.A.A.T            ', 'color:blue;background-color:white');
-    console.log('%c Target Points: %s, Stoploss Points: %s, Disable After 2 Trades: %s', 'background-color:yellow;color:blue;', TARGETTICK, STOPLOSSTICK, disableAfterTwoTrades);
+    //console.log('%c Target Points: %s, Stoploss Points: %s, Disable After 2 Trades: %s', 'background-color:yellow;color:blue;', TARGETTICK, STOPLOSSTICK, disableAfterTwoTrades);
 
     var entry, target, stopLoss, totalTradePointsProfit = 0, totalTradePointsLoss = 0;
     var day = -1, indx = 0, profitCounter = 0, lossCounter = 0, isTrading = false, longShort = 0, masterIndex = 0;
@@ -179,6 +179,7 @@
     function fnEnableAll() {
     }
     function fnResetForTest() {
+        continueTradeOverride = true; testMode = true;
         var disableAfterTwoTrades = true, reverseTrade = false;
         boolfnBearPatternAfterGapDown = false,
             boolfnSignificantGapDuringOpen = false,
@@ -270,7 +271,7 @@
     function testfnBearPatternAfterGapDown() {
         console.log('%c %s', 'background-color:blue;color:white;font-style:italic;font-size:20px;', 'Running test for pattern: ' + 'fnBearPatternAfterGapDown')
         fnReset(); fnResetForTest();
-        boolfnBearPatternAfterGapDown = true; continueTradeOverride = true; testMode = true;
+        boolfnBearPatternAfterGapDown = true;
         startProgram();
         testResults.push({ 'pattern': 'fnBearPatternAfterGapDown', 'profitCounter': profitCounter, 'lossCounter': lossCounter, 'profitPoint': totalTradePointsProfit, 'lossPoint': totalTradePointsLoss, 'pointsGainLoss': totalTradePointsProfit - totalTradePointsLoss });
     }
@@ -278,7 +279,7 @@
         console.log('%c %s', 'background-color:blue;color:white;font-style:italic;font-size:20px;', 'Running test for pattern: ' + 'fnSignificantGapDuringOpen')
         fnReset(); fnResetForTest();
 
-        boolfnSignificantGapDuringOpen = true; continueTradeOverride = true; testMode = true;
+        boolfnSignificantGapDuringOpen = true;
         startProgram();
         testResults.push({ 'pattern': 'fnSignificantGapDuringOpen', 'profitCounter': profitCounter, 'lossCounter': lossCounter, 'profitPoint': totalTradePointsProfit, 'lossPoint': totalTradePointsLoss, 'pointsGainLoss': totalTradePointsProfit - totalTradePointsLoss });
 
@@ -287,7 +288,7 @@
         console.log('%c %s', 'background-color:blue;color:white;font-style:italic;font-size:20px;', 'Running test for pattern: ' + 'fnBullOpenBreaksFirstSupport')
         fnReset(); fnResetForTest();
 
-        boolfnBullOpenBreaksFirstSupport = true; continueTradeOverride = true; testMode = true;
+        boolfnBullOpenBreaksFirstSupport = true;
         startProgram();
         testResults.push({ 'pattern': 'fnBullOpenBreaksFirstSupport', 'profitCounter': profitCounter, 'lossCounter': lossCounter, 'profitPoint': totalTradePointsProfit, 'lossPoint': totalTradePointsLoss, 'pointsGainLoss': totalTradePointsProfit - totalTradePointsLoss });
 
@@ -296,7 +297,7 @@
         console.log('%c %s', 'background-color:blue;color:white;font-style:italic;font-size:20px;', 'Running test for pattern: ' + 'fnBearOpenBreaksFirstResistance')
         fnReset(); fnResetForTest();
 
-        boolfnBearOpenBreaksFirstResistance = true; continueTradeOverride = true; testMode = true;
+        boolfnBearOpenBreaksFirstResistance = true;
         startProgram();
         testResults.push({ 'pattern': 'fnBearOpenBreaksFirstResistance', 'profitCounter': profitCounter, 'lossCounter': lossCounter, 'profitPoint': totalTradePointsProfit, 'lossPoint': totalTradePointsLoss, 'pointsGainLoss': totalTradePointsProfit - totalTradePointsLoss });
 
@@ -305,7 +306,7 @@
         console.log('%c %s', 'background-color:blue;color:white;font-style:italic;font-size:20px;', 'Running test for pattern: ' + 'fnThreeGreenCandles')
         fnReset(); fnResetForTest();
 
-        boolfnThreeGreenCandles = true; continueTradeOverride = true; testMode = true;
+        boolfnThreeGreenCandles = true;
         startProgram();
         testResults.push({ 'pattern': 'fnThreeGreenCandles', 'profitCounter': profitCounter, 'lossCounter': lossCounter, 'profitPoint': totalTradePointsProfit, 'lossPoint': totalTradePointsLoss, 'pointsGainLoss': totalTradePointsProfit - totalTradePointsLoss });
 
@@ -314,7 +315,7 @@
         console.log('%c %s', 'background-color:blue;color:white;font-style:italic;font-size:20px;', 'Running test for pattern: ' + 'fnThreeRedCandles')
         fnReset(); fnResetForTest();
 
-        boolfnThreeRedCandles = true; continueTradeOverride = true; testMode = true;
+        boolfnThreeRedCandles = true;
         startProgram();
         testResults.push({ 'pattern': 'fnThreeRedCandles', 'profitCounter': profitCounter, 'lossCounter': lossCounter, 'profitPoint': totalTradePointsProfit, 'lossPoint': totalTradePointsLoss, 'pointsGainLoss': totalTradePointsProfit - totalTradePointsLoss });
 
@@ -323,7 +324,7 @@
         console.log('%c %s', 'background-color:blue;color:white;font-style:italic;font-size:20px;', 'Running test for pattern: ' + 'fnGapUpAndFirst3CandlesNegative')
         fnReset(); fnResetForTest();
 
-        boolfnGapUpAndFirst3CandlesNegative = true; continueTradeOverride = true; testMode = true;
+        boolfnGapUpAndFirst3CandlesNegative = true;
         startProgram();
         testResults.push({ 'pattern': 'fnGapUpAndFirst3CandlesNegative', 'profitCounter': profitCounter, 'lossCounter': lossCounter, 'profitPoint': totalTradePointsProfit, 'lossPoint': totalTradePointsLoss, 'pointsGainLoss': totalTradePointsProfit - totalTradePointsLoss });
 
@@ -332,7 +333,7 @@
         console.log('%c %s', 'background-color:blue;color:white;font-style:italic;font-size:20px;', 'Running test for pattern: ' + 'fnGapDownOpenAndBullTrendReversal')
         fnReset(); fnResetForTest();
 
-        boolfnGapDownOpenAndBullTrendReversal = true; continueTradeOverride = true; testMode = true;
+        boolfnGapDownOpenAndBullTrendReversal = true;
         startProgram();
         testResults.push({ 'pattern': 'fnGapDownOpenAndBullTrendReversal', 'profitCounter': profitCounter, 'lossCounter': lossCounter, 'profitPoint': totalTradePointsProfit, 'lossPoint': totalTradePointsLoss, 'pointsGainLoss': totalTradePointsProfit - totalTradePointsLoss });
 
@@ -341,7 +342,7 @@
         console.log('%c %s', 'background-color:blue;color:white;font-style:italic;font-size:20px;', 'Running test for pattern: ' + 'fnGapUpOpenAndBearTrendReversal')
         fnReset(); fnResetForTest();
 
-        boolfnGapUpOpenAndBearTrendReversal = true; continueTradeOverride = true; testMode = true;
+        boolfnGapUpOpenAndBearTrendReversal = true;
         startProgram();
         testResults.push({ 'pattern': 'fnGapUpOpenAndBearTrendReversal', 'profitCounter': profitCounter, 'lossCounter': lossCounter, 'profitPoint': totalTradePointsProfit, 'lossPoint': totalTradePointsLoss, 'pointsGainLoss': totalTradePointsProfit - totalTradePointsLoss });
 
@@ -350,7 +351,7 @@
         console.log('%c %s', 'background-color:blue;color:white;font-style:italic;font-size:20px;', 'Running test for pattern: ' + 'fnGapUpOpenAndHighActsResistance')
         fnReset(); fnResetForTest();
 
-        boolfnGapUpOpenAndHighActsResistance = true; continueTradeOverride = true; testMode = true;
+        boolfnGapUpOpenAndHighActsResistance = true;
         startProgram();
         testResults.push({ 'pattern': 'fnGapUpOpenAndHighActsResistance', 'profitCounter': profitCounter, 'lossCounter': lossCounter, 'profitPoint': totalTradePointsProfit, 'lossPoint': totalTradePointsLoss, 'pointsGainLoss': totalTradePointsProfit - totalTradePointsLoss });
 
